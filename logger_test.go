@@ -131,8 +131,8 @@ func TestError_Local(t *testing.T) {
 Tests that with SENTRY_DSN set, info messages are *not sent* to the sentry server
  */
 func TestError_Info(t *testing.T) {
-	oldSentryDns := os.Getenv("SENTRY_DSN")
-	defer os.Setenv("SENTRY_DSN", oldSentryDns)
+	oldSentryDsn := os.Getenv("SENTRY_DSN")
+	defer os.Setenv("SENTRY_DSN", oldSentryDsn)
 
 	handle := func(res http.ResponseWriter, req *http.Request) {
 		assert.Fail(t, "Sentry server was called for an info, which is not the intended behavior")
@@ -208,8 +208,8 @@ func startMockSentryServer(t *testing.T) *TestSentryServer {
 Tests that with SENTRY_DSN set, error messages and params are sent to the sentry server
  */
 func TestError_Sentry(t *testing.T) {
-	oldSentryDns := os.Getenv("SENTRY_DSN")
-	defer os.Setenv("SENTRY_DSN", oldSentryDns)
+	oldSentryDsn := os.Getenv("SENTRY_DSN")
+	defer os.Setenv("SENTRY_DSN", oldSentryDsn)
 
 	ts := startMockSentryServer(t)
 	defer ts.Server.Close()

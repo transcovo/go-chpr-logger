@@ -1,6 +1,7 @@
 ➤ Readme generated with godocdown
 
-This package implements our standard Logrus + Logentries + Sentry configuration.
+Package logger implements our standard Logrus + Logentries + Sentry
+configuration.
 
 The package manages a singleton instance of logrus.Logger, initialized from
 environment variables.
@@ -10,29 +11,41 @@ You will use it exactly as you would use logrus.
 
 ### Examples
 
+Log debug info: use the Debug method instead of the Info method. Everything else
+works the same way.
+
 Log an info:
 
-    WithFields(logger.Fields{
+    logger.WithFields(logger.Fields{
     	"driverId": driverId,
     	"rideId": rideId,
     }).Info("Ride accepted")
 
 Log an info with a single field:
 
-    WithField("userId", userId).Info("User logged in")
+    logger.WithField("userId", userId).Info("User logged in")
 
 Log an error:
 
-    WithFields(logger.Fields{
+    logger.WithFields(logger.Fields{
     	"event": event,
     	"err": err
     }).Error("Could not store ride end event")
 
-IMPORTANT: when logging an error or a warning, don't put an error you're not
-sure about the message as the message. The reason for that is that sentry uses
-the message to regroup similar events. If your library returns different
-messages for different occurrences of the same problem, you will flood your team
-with a lot of alerts for the same problem. Instead, put the error in the data.
+IMPORTANT NOTE ABOUT SENTRY: Sentry groups similar occurrences of the same
+problem by taking into account the message and the stack trace. So it's
+important to have an error message that's always the same for different
+occurrences of the same problem. Keep things that can change in the metadata. A
+common practice in go for functions that return errors is to handle what they
+can handle, and forward the rest as is. So the most likely scenario is that your
+err object can be anything. In this situation, you have no choice but to put the
+err object in the metadata, and put the actual consequence of the problem you
+are reporting in the error message.
+
+In the long run, you will identify different type of errors you didn't think
+about thanks to the err in the metadata. You will fix the most frequent, mark
+the sentry as resolved, and eventually it will come back with a less frequent
+cause you also didn't think you had to handle, etc...
 
 
 ### Configuration
@@ -65,41 +78,42 @@ discourage logging without context.
 ```go
 func CreateLogger() *logrus.Logger
 ```
-Returns the already configured logrus.Logger singletton.
-
-Note: this instance is cached, so if the environment changes, you will need to
-call ReloadConfiguration() before calling this method.
+CreateLogger creates a new instance of logrus.Logger, which is configured from
+the environment variables according to cp conventions (see package overview)
 
 #### func  GetLogger
 
 ```go
 func GetLogger() *logrus.Logger
 ```
-Returns the already configured logrus.Logger singletton.
+GetLogger returns logrus.Logger singleton, already configured and ready to use.
 
-Note: this instance is cached, so if the environment changes, you will need to
-call ReloadConfiguration() before calling this method.
+This instance is cached, so if the environment changes, you will need to call
+ReloadConfiguration() to take changes into account.
 
 #### func  ReloadConfiguration
 
 ```go
 func ReloadConfiguration()
 ```
-Reloads configuration from the environment. Mostly useful for tests.
+ReloadConfiguration reloads configuration from the environment. Mostly useful
+for tests.
 
 #### func  WithField
 
 ```go
 func WithField(key string, value interface{}) *logrus.Entry
 ```
-Shorthand for GetLogger().WithField(fields). Use instead of logrus.WithField.
+WithField is a shorthand for GetLogger().WithField(fields). Use instead of
+logrus.WithField.
 
 #### func  WithFields
 
 ```go
 func WithFields(fields Fields) *logrus.Entry
 ```
-Shorthand for GetLogger().WithFields(fields). Use instead of logrus.WithFields.
+WithFields is a shorthand for GetLogger().WithFields(fields). Use instead of
+logrus.WithFields.
 
 #### type Fields
 
@@ -107,7 +121,7 @@ Shorthand for GetLogger().WithFields(fields). Use instead of logrus.WithFields.
 type Fields logrus.Fields
 ```
 
-Alias for the logrus.Fields
+Fields type is an alias for the logrus.Fields type
 
 This will allow most of our code to not directly depend on logrus, making it
 much easier if we have to switch to another logger later.
