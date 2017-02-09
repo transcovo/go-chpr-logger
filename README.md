@@ -1,5 +1,10 @@
-➤ Readme generated with godocdown
+[![CircleCI](https://circleci.com/gh/transcovo/go-chpr-logger.svg?style=shield)](https://circleci.com/gh/transcovo/go-chpr-logger)
+[![codecov](https://codecov.io/gh/transcovo/go-chpr-logger/branch/master/graph/badge.svg)](https://codecov.io/gh/transcovo/go-chpr-logger)
+[![GoDoc](https://godoc.org/github.com/transcovo/go-chpr-logger?status.svg)](https://godoc.org/github.com/transcovo/go-chpr-logger)
 
+Doc below generated from godoc with godocdown
+
+--------------------
 Package logger implements our standard Logrus + Logentries + Sentry
 configuration.
 
