@@ -1,5 +1,4 @@
 /*
-
 Package logger implements our standard Logrus + Logentries + Sentry configuration.
 
 The package manages a singleton instance of logrus.Logger, initialized from environment variables.
