@@ -44,10 +44,11 @@ Configuration
 
 SENTRY_DSN: If provided, warning and error logs will be sent to sentry.
 
-LOGGER_NAME - not yet implemented - The name of the logger.
+LOGGER_LEVEL: The minimum level of the message to be actually logged.
+Possible values: "debug" (default, convenient for development), "info", "warning" or "error". If an invalid value
+is provided, "info" will be used and a warning will be logged.
 
-LOGGER_LEVEL - not yet implemented - The minimum level of the message to be actually logged.
-Possible values: "debug", "info", "warning", "error".
+LOGGER_NAME - not yet implemented - The name of the logger.
 
 LOGENTRIES_TOKEN - not yet implemented - If provided, logs will be sent to logentries.
 
@@ -68,6 +69,8 @@ import (
 	"os"
 	"github.com/evalphobia/logrus_sentry"
 	"time"
+	"strings"
+	"fmt"
 )
 
 /*
@@ -108,21 +111,60 @@ func createSentryHook(sentryDsn string) logrus.Hook {
 }
 
 /*
+getLevelFromEnv parses log level from environment variable LOGGER_LEVEL and apply sensible defaults when the value is
+absent or invalid.
+
+When LOGGER_LEVEL is not defined we use DebugLevel, which is convenient for development
+
+When LOGGER_LEVEL is invalid we use InfoLevel, which is convenient for production, and log a warning to help fix
+the situation
+
+Note: we do not use logrus.ParseLevel because we want to exclude warn, fatal and panic which are not a part of cp
+conventions, and we need to have error messages consistent with what's actually possible.
+ */
+func getLevelFromEnv() (logrus.Level, error) {
+	levelStr := os.Getenv("LOGGER_LEVEL")
+	if levelStr == "" {
+		return logrus.DebugLevel, nil
+	}
+
+	switch strings.ToLower(levelStr) {
+	case "error":
+		return logrus.ErrorLevel, nil
+	case "warning":
+		return logrus.WarnLevel, nil
+	case "info":
+		return logrus.InfoLevel, nil
+	case "debug":
+		return logrus.DebugLevel, nil
+	}
+
+	return logrus.InfoLevel, fmt.Errorf("not a valid logrus Level: %q", levelStr)
+}
+
+/*
 CreateLogger creates a new instance of logrus.Logger, which is configured from the environment variables according to cp
 conventions (see package overview)
  */
 func CreateLogger() *logrus.Logger {
+	level, levelParseErr := getLevelFromEnv()
+
 	newLogger := &logrus.Logger{
 		Out:       os.Stdout,
 		Formatter: new(logrus.TextFormatter),
 		Hooks:     make(logrus.LevelHooks),
-		Level:     logrus.DebugLevel,
+		Level:     level,
 	}
 
 	sentryDsn := os.Getenv("SENTRY_DSN")
 	if sentryDsn != "" {
 		hook := createSentryHook(sentryDsn)
 		newLogger.Hooks.Add(hook)
+	}
+
+	if levelParseErr != nil {
+		newLogger.WithField("err", levelParseErr).
+			Warning("Invalid LOGGER_LEVEL value, please use debug, info, warning or error")
 	}
 	return newLogger
 }
