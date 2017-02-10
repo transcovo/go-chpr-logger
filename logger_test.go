@@ -14,6 +14,7 @@ import (
 	"compress/zlib"
 	"encoding/json"
 	"github.com/getsentry/raven-go"
+	"github.com/Sirupsen/logrus"
 )
 
 /*
@@ -47,6 +48,22 @@ func captureStdout(task func()) []byte {
 }
 
 /*
+withEnvVariable helper function executes a task in a context when the value of an environment variable is temporarily
+changed
+
+key is the name of the environment variable to change
+value is the temporary value
+task specifies the task to execute
+ */
+func withEnvVariable(key string, value string, task func()) {
+	oldValue := os.Getenv(key)
+	defer os.Setenv(key, oldValue)
+
+	os.Setenv(key, value)
+	task()
+}
+
+/*
 Tests that with the default setup, debug messages and params appear on stdout
  */
 func TestDebug_Local(t *testing.T) {
@@ -54,8 +71,8 @@ func TestDebug_Local(t *testing.T) {
 		WithFields(Fields{
 			"name": "str param",
 			"count": 1,
-		}).Debug("My message")
-		WithField("count", 2).Debug("My message 2")
+		}).Debug("test debug")
+		WithField("count", 2).Debug("test debug 2")
 	})
 
 	lines := bytes.Split(stdout, []byte{'\n'})
@@ -63,16 +80,96 @@ func TestDebug_Local(t *testing.T) {
 
 	line1 := string(lines[0])
 	assert.Contains(t, line1, `level=debug`)
-	assert.Contains(t, line1, "My message")
+	assert.Contains(t, line1, "test debug")
 	assert.Contains(t, line1, `name="str param"`)
 	assert.Contains(t, line1, `count=1`)
 
 	line2 := string(lines[1])
 	assert.Contains(t, line1, `level=debug`)
-	assert.Contains(t, line2, "My message 2")
+	assert.Contains(t, line2, "test debug 2")
 	assert.Contains(t, line2, `count=2`)
 }
 
+/*
+Tests that when level is set to info, debug messages are not printed
+*/
+func TestDebug_Local_Filtered(t *testing.T) {
+	withEnvVariable("LOGGER_LEVEL", "info", func() {
+		stdout := captureStdout(func() {
+			WithFields(Fields{}).Debug("test info")
+		})
+
+		assert.Len(t, stdout, 0)
+	})
+}
+
+/*
+Tests that when level to an invalid value, it falls back to info after logging a warning
+*/
+func TestDebug_Local_InvalidLevel(t *testing.T) {
+	withEnvVariable("LOGGER_LEVEL", "qdzeazaz", func() {
+		var stdout []byte
+
+		stdout = captureStdout(func() {
+			WithFields(Fields{}).Debug("debug log")
+		})
+
+		assert.Contains(t, string(stdout), "Invalid LOGGER_LEVEL value, please use debug, info, warning or error")
+		assert.Contains(t, string(stdout), "qdzeazaz")
+		assert.NotContains(t, string(stdout), "debug log")
+
+		stdout = captureStdout(func() {
+			WithFields(Fields{}).Info("an info")
+		})
+
+		assert.Contains(t, string(stdout), "an info")
+	})
+}
+/*
+Tests that getLevelFromEnv return the expected value with correct input
+*/
+func TestGetLevelFromEnv(t *testing.T) {
+	withEnvVariable("LOGGER_LEVEL", "debug", func() {
+		level, err := getLevelFromEnv()
+		assert.Nil(t, err)
+		assert.Equal(t, logrus.DebugLevel, level)
+	})
+	withEnvVariable("LOGGER_LEVEL", "info", func() {
+		level, err := getLevelFromEnv()
+		assert.Nil(t, err)
+		assert.Equal(t, logrus.InfoLevel, level)
+	})
+	withEnvVariable("LOGGER_LEVEL", "warning", func() {
+		level, err := getLevelFromEnv()
+		assert.Nil(t, err)
+		assert.Equal(t, logrus.WarnLevel, level)
+	})
+	withEnvVariable("LOGGER_LEVEL", "error", func() {
+		level, err := getLevelFromEnv()
+		assert.Nil(t, err)
+		assert.Equal(t, logrus.ErrorLevel, level)
+	})
+}
+/*
+Tests that when level to an invalid value that is a logrus level, it falls back to info after logging a warning
+*/
+func TestGetLevelFromEnv_InvalidLogrus(t *testing.T) {
+	withEnvVariable("LOGGER_LEVEL", "warn", func() {
+		level, err := getLevelFromEnv()
+		assert.NotNil(t, err)
+		assert.Equal(t, logrus.InfoLevel, level)
+	})
+	withEnvVariable("LOGGER_LEVEL", "fatal", func() {
+		level, err := getLevelFromEnv()
+		assert.NotNil(t, err)
+		assert.Equal(t, logrus.InfoLevel, level)
+	})
+	withEnvVariable("LOGGER_LEVEL", "panic", func() {
+		level, err := getLevelFromEnv()
+		assert.NotNil(t, err)
+		assert.Equal(t, logrus.InfoLevel, level)
+	})
+}
 /*
 Tests that with the default setup, info messages and params appear on stdout
  */
@@ -81,21 +178,21 @@ func TestInfo_Local(t *testing.T) {
 		WithFields(Fields{
 			"name": "str param",
 			"count": 1,
-		}).Info("My message")
-		WithField("count", 2).Info("My message 2")
+		}).Info("test info")
+		WithField("count", 2).Info("test info 2")
 	})
 	lines := bytes.Split(stdout, []byte{'\n'})
 	assert.Len(t, lines, 3)
 
 	line1 := string(lines[0])
 	assert.Contains(t, line1, `level=info`)
-	assert.Contains(t, line1, "My message")
+	assert.Contains(t, line1, "test info")
 	assert.Contains(t, line1, `name="str param"`)
 	assert.Contains(t, line1, `count=1`)
 
 	line2 := string(lines[1])
 	assert.Contains(t, line1, `level=info`)
-	assert.Contains(t, line2, "My message 2")
+	assert.Contains(t, line2, "test info 2")
 	assert.Contains(t, line2, `count=2`)
 }
 
@@ -107,8 +204,8 @@ func TestError_Local(t *testing.T) {
 		WithFields(Fields{
 			"name": "str param",
 			"count": 1,
-		}).Error("My message")
-		WithField("count", 2).Error("My message 2")
+		}).Error("test error")
+		WithField("count", 2).Error("test error 2")
 
 	})
 
@@ -117,13 +214,13 @@ func TestError_Local(t *testing.T) {
 
 	line1 := string(lines[0])
 	assert.Contains(t, line1, `level=error`)
-	assert.Contains(t, line1, "My message")
+	assert.Contains(t, line1, "test error")
 	assert.Contains(t, line1, `name="str param"`)
 	assert.Contains(t, line1, `count=1`)
 
 	line2 := string(lines[1])
 	assert.Contains(t, line1, `level=error`)
-	assert.Contains(t, line2, "My message 2")
+	assert.Contains(t, line2, "test error 2")
 	assert.Contains(t, line2, `count=2`)
 }
 
@@ -131,9 +228,6 @@ func TestError_Local(t *testing.T) {
 Tests that with SENTRY_DSN set, info messages are *not sent* to the sentry server
  */
 func TestError_Info(t *testing.T) {
-	oldSentryDsn := os.Getenv("SENTRY_DSN")
-	defer os.Setenv("SENTRY_DSN", oldSentryDsn)
-
 	handle := func(res http.ResponseWriter, req *http.Request) {
 		assert.Fail(t, "Sentry server was called for an info, which is not the intended behavior")
 	}
@@ -145,13 +239,13 @@ func TestError_Info(t *testing.T) {
 
 	testServerHost := strings.Split(ts.URL, "http://")[1]
 
-	os.Setenv("SENTRY_DSN", "http://aaa:bbb@" + testServerHost + "/123")
+	withEnvVariable("SENTRY_DSN", "http://aaa:bbb@" + testServerHost + "/123", func() {
+		WithFields(Fields{
+			"name": "str param",
+			"count": 1,
+		}).Info("test sentry error")
+	})
 	ReloadConfiguration()
-
-	WithFields(Fields{
-		"name": "str param",
-		"count": 1,
-	}).Info("My message")
 }
 
 /*
@@ -208,24 +302,21 @@ func startMockSentryServer(t *testing.T) *TestSentryServer {
 Tests that with SENTRY_DSN set, error messages and params are sent to the sentry server
  */
 func TestError_Sentry(t *testing.T) {
-	oldSentryDsn := os.Getenv("SENTRY_DSN")
-	defer os.Setenv("SENTRY_DSN", oldSentryDsn)
-
 	ts := startMockSentryServer(t)
 	defer ts.Server.Close()
 
-	os.Setenv("SENTRY_DSN", "http://aaa:bbb@" + ts.Host + "/123")
-	ReloadConfiguration()
+	withEnvVariable("SENTRY_DSN", "http://aaa:bbb@" + ts.Host + "/123", func() {
+		ReloadConfiguration()
 
-	WithFields(Fields{
-		"name": "str param",
-		"count": 1,
-	}).Error("My message")
-
+		WithFields(Fields{
+			"name": "str param",
+			"count": 1,
+		}).Error("test sentry error")
+	})
 	packet := <-ts.PacketChannel
 
 	assert.Equal(t, raven.Severity("error"), packet.Level)
-	assert.Equal(t, "My message", packet.Message)
+	assert.Equal(t, "test sentry error", packet.Message)
 	assert.Equal(t, "str param", packet.Extra["name"])
 	assert.EqualValues(t, 1, packet.Extra["count"])
 	assert.Equal(t, "go", packet.Platform)

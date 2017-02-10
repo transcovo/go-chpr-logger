@@ -61,10 +61,12 @@ cause you also didn't think you had to handle, etc...
 
 SENTRY_DSN: If provided, warning and error logs will be sent to sentry.
 
-LOGGER_NAME - not yet implemented - The name of the logger.
+LOGGER_LEVEL: The minimum level of the message to be actually logged. Possible
+values: "debug" (default, convenient for development), "info", "warning" or
+"error". If an invalid value is provided, "info" will be used and a warning will
+be logged.
 
-LOGGER_LEVEL - not yet implemented - The minimum level of the message to be
-actually logged. Possible values: "debug", "info", "warning", "error".
+LOGGER_NAME - not yet implemented - The name of the logger.
 
 LOGENTRIES_TOKEN - not yet implemented - If provided, logs will be sent to
 logentries.
