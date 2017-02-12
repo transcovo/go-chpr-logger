@@ -84,6 +84,26 @@ discourage logging without context.
 
 ## Usage
 
+```go
+var Debug = GetLogger().Debug
+```
+Debug is a shorthand to GetLogger().Debug
+
+```go
+var Error = GetLogger().Error
+```
+Error is a shorthand to GetLogger().Error
+
+```go
+var Info = GetLogger().Info
+```
+Info is a shorthand to GetLogger().Info
+
+```go
+var Warning = GetLogger().Warning
+```
+Warning is a shorthand to GetLogger().Warning
+
 #### func  CreateLogger
 
 ```go

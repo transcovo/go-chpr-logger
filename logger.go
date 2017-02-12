@@ -201,3 +201,23 @@ WithField is a shorthand for GetLogger().WithField(fields). Use instead of logru
 func WithField(key string, value interface{}) *logrus.Entry {
 	return GetLogger().WithField(key, value)
 }
+
+/*
+Debug is a shorthand to GetLogger().Debug
+ */
+var Debug = GetLogger().Debug
+
+/*
+Info is a shorthand to GetLogger().Info
+ */
+var Info = GetLogger().Info
+
+/*
+Warning is a shorthand to GetLogger().Warning
+ */
+var Warning = GetLogger().Warning
+
+/*
+Error is a shorthand to GetLogger().Error
+ */
+var Error = GetLogger().Error
