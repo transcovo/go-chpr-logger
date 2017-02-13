@@ -68,7 +68,7 @@ Tests that with the default setup, debug messages and params appear on stdout
  */
 func TestDebug_Local(t *testing.T) {
 	stdout := captureStdout(func() {
-		WithFields(Fields{
+		WithFields(logrus.Fields{
 			"name": "str param",
 			"count": 1,
 		}).Debug("test debug")
@@ -96,7 +96,7 @@ Tests that when level is set to info, debug messages are not printed
 func TestDebug_Local_Filtered(t *testing.T) {
 	withEnvVariable("LOGGER_LEVEL", "info", func() {
 		stdout := captureStdout(func() {
-			WithFields(Fields{}).Debug("test info")
+			WithFields(logrus.Fields{}).Debug("test info")
 		})
 
 		assert.Len(t, stdout, 0)
@@ -111,7 +111,7 @@ func TestDebug_Local_InvalidLevel(t *testing.T) {
 		var stdout []byte
 
 		stdout = captureStdout(func() {
-			WithFields(Fields{}).Debug("debug log")
+			WithFields(logrus.Fields{}).Debug("debug log")
 		})
 
 		assert.Contains(t, string(stdout), "Invalid LOGGER_LEVEL value, please use debug, info, warning or error")
@@ -119,7 +119,7 @@ func TestDebug_Local_InvalidLevel(t *testing.T) {
 		assert.NotContains(t, string(stdout), "debug log")
 
 		stdout = captureStdout(func() {
-			WithFields(Fields{}).Info("an info")
+			WithFields(logrus.Fields{}).Info("an info")
 		})
 
 		assert.Contains(t, string(stdout), "an info")
@@ -175,7 +175,7 @@ Tests that with the default setup, info messages and params appear on stdout
  */
 func TestInfo_Local(t *testing.T) {
 	stdout := captureStdout(func() {
-		WithFields(Fields{
+		WithFields(logrus.Fields{
 			"name": "str param",
 			"count": 1,
 		}).Info("test info")
@@ -201,7 +201,7 @@ Tests that with the default setup, error messages and params appear on stdout
  */
 func TestError_Local(t *testing.T) {
 	stdout := captureStdout(func() {
-		WithFields(Fields{
+		WithFields(logrus.Fields{
 			"name": "str param",
 			"count": 1,
 		}).Error("test error")
@@ -240,7 +240,7 @@ func TestError_Info(t *testing.T) {
 	testServerHost := strings.Split(ts.URL, "http://")[1]
 
 	withEnvVariable("SENTRY_DSN", "http://aaa:bbb@" + testServerHost + "/123", func() {
-		WithFields(Fields{
+		WithFields(logrus.Fields{
 			"name": "str param",
 			"count": 1,
 		}).Info("test sentry error")
@@ -308,7 +308,7 @@ func TestError_Sentry(t *testing.T) {
 	withEnvVariable("SENTRY_DSN", "http://aaa:bbb@" + ts.Host + "/123", func() {
 		ReloadConfiguration()
 
-		WithFields(Fields{
+		WithFields(logrus.Fields{
 			"name": "str param",
 			"count": 1,
 		}).Error("test sentry error")
