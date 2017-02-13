@@ -12,7 +12,7 @@ Log debug info: use the Debug method instead of the Info method. Everything else
 
 Log an info:
 
-	logger.WithFields(logger.Fields{
+	logger.WithFields(logrus.Fields{
 		"driverId": driverId,
 		"rideId": rideId,
 	}).Info("Ride accepted")
@@ -23,7 +23,7 @@ Log an info with a single field:
 
 Log an error:
 
-	logger.WithFields(logger.Fields{
+	logger.WithFields(logrus.Fields{
 		"event": event,
 		"err": err
 	}).Error("Could not store ride end event")
@@ -72,14 +72,6 @@ import (
 	"strings"
 	"fmt"
 )
-
-/*
-Fields type is an alias for the logrus.Fields type
-
-This will allow most of our code to not directly depend on logrus, making it much easier if we have to switch
-to another logger later.
- */
-type Fields logrus.Fields
 
 var logger *logrus.Logger
 
@@ -192,7 +184,7 @@ func ReloadConfiguration() {
 /*
 WithFields is a shorthand for GetLogger().WithFields(fields). Use instead of logrus.WithFields.
  */
-func WithFields(fields Fields) *logrus.Entry {
+func WithFields(fields logrus.Fields) *logrus.Entry {
 	return GetLogger().WithFields(logrus.Fields(fields))
 }
 /*

@@ -25,7 +25,7 @@ works the same way.
 
 Log an info:
 
-    logger.WithFields(logger.Fields{
+    logger.WithFields(logrus.Fields{
     	"driverId": driverId,
     	"rideId": rideId,
     }).Info("Ride accepted")
@@ -36,7 +36,7 @@ Log an info with a single field:
 
 Log an error:
 
-    logger.WithFields(logger.Fields{
+    logger.WithFields(logrus.Fields{
     	"event": event,
     	"err": err
     }).Error("Could not store ride end event")
