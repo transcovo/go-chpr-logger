@@ -140,6 +140,8 @@ conventions (see package overview)
  */
 func CreateLogger() *logrus.Logger {
 	level, levelParseErr := getLevelFromEnv()
+	// levelParseErr is handled at the end of this function, because the handling is logging a warning, and
+	// we need the logger initialization to be completed before (and especially the sentry hook).
 
 	newLogger := &logrus.Logger{
 		Out:       os.Stdout,

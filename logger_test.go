@@ -85,7 +85,7 @@ func TestDebug_Local(t *testing.T) {
 	assert.Contains(t, line1, `count=1`)
 
 	line2 := string(lines[1])
-	assert.Contains(t, line1, `level=debug`)
+	assert.Contains(t, line2, `level=debug`)
 	assert.Contains(t, line2, "test debug 2")
 	assert.Contains(t, line2, `count=2`)
 }
@@ -191,7 +191,7 @@ func TestInfo_Local(t *testing.T) {
 	assert.Contains(t, line1, `count=1`)
 
 	line2 := string(lines[1])
-	assert.Contains(t, line1, `level=info`)
+	assert.Contains(t, line2, `level=info`)
 	assert.Contains(t, line2, "test info 2")
 	assert.Contains(t, line2, `count=2`)
 }
@@ -219,7 +219,7 @@ func TestError_Local(t *testing.T) {
 	assert.Contains(t, line1, `count=1`)
 
 	line2 := string(lines[1])
-	assert.Contains(t, line1, `level=error`)
+	assert.Contains(t, line2, `level=error`)
 	assert.Contains(t, line2, "test error 2")
 	assert.Contains(t, line2, `count=2`)
 }
