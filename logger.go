@@ -76,6 +76,12 @@ import (
 var logger *logrus.Logger
 
 /*
+Fields is an internal type that allows us not to expose logrus.Fields
+hence, when we need to use WithFields, there is no need to import logrus
+*/
+type Fields logrus.Fields
+
+/*
 Creates a sentry hook catching message of level warning or worse and sending them to sentry
  */
 func createSentryHook(sentryDsn string) logrus.Hook {
@@ -186,7 +192,7 @@ func ReloadConfiguration() {
 /*
 WithFields is a shorthand for GetLogger().WithFields(fields). Use instead of logrus.WithFields.
  */
-func WithFields(fields logrus.Fields) *logrus.Entry {
+func WithFields(fields Fields) *logrus.Entry {
 	return GetLogger().WithFields(logrus.Fields(fields))
 }
 /*
