@@ -61,23 +61,24 @@ Notes
 
 Methods that allow logging without context are not provided, in order to discourage logging without context.
 
- */
+*/
 package logger
 
 import (
-	"github.com/Sirupsen/logrus"
-	"os"
-	"github.com/evalphobia/logrus_sentry"
-	"time"
-	"strings"
 	"fmt"
+	"os"
+	"strings"
+	"time"
+
+	"github.com/Sirupsen/logrus"
+	"github.com/evalphobia/logrus_sentry"
 )
 
 var logger *logrus.Logger
 
 /*
 Creates a sentry hook catching message of level warning or worse and sending them to sentry
- */
+*/
 func createSentryHook(sentryDsn string) logrus.Hook {
 	hook, err := logrus_sentry.NewSentryHook(sentryDsn, []logrus.Level{
 		logrus.PanicLevel,
@@ -113,7 +114,7 @@ the situation
 
 Note: we do not use logrus.ParseLevel because we want to exclude warn, fatal and panic which are not a part of cp
 conventions, and we need to have error messages consistent with what's actually possible.
- */
+*/
 func getLevelFromEnv() (logrus.Level, error) {
 	levelStr := os.Getenv("LOGGER_LEVEL")
 	if levelStr == "" {
@@ -137,7 +138,7 @@ func getLevelFromEnv() (logrus.Level, error) {
 /*
 CreateLogger creates a new instance of logrus.Logger, which is configured from the environment variables according to cp
 conventions (see package overview)
- */
+*/
 func CreateLogger() *logrus.Logger {
 	level, levelParseErr := getLevelFromEnv()
 	// levelParseErr is handled at the end of this function, because the handling is logging a warning, and
@@ -145,7 +146,7 @@ func CreateLogger() *logrus.Logger {
 
 	newLogger := &logrus.Logger{
 		Out:       os.Stdout,
-		Formatter: new(logrus.TextFormatter),
+		Formatter: new(logrus.JSONFormatter),
 		Hooks:     make(logrus.LevelHooks),
 		Level:     level,
 	}
@@ -168,7 +169,7 @@ GetLogger returns logrus.Logger singleton, already configured and ready to use.
 
 This instance is cached, so if the environment changes, you will need to call ReloadConfiguration() to take changes
 into account.
- */
+*/
 func GetLogger() *logrus.Logger {
 	if logger == nil {
 		logger = CreateLogger()
@@ -178,40 +179,41 @@ func GetLogger() *logrus.Logger {
 
 /*
 ReloadConfiguration reloads configuration from the environment. Mostly useful for tests.
- */
+*/
 func ReloadConfiguration() {
 	logger = nil
 }
 
 /*
 WithFields is a shorthand for GetLogger().WithFields(fields). Use instead of logrus.WithFields.
- */
+*/
 func WithFields(fields logrus.Fields) *logrus.Entry {
 	return GetLogger().WithFields(logrus.Fields(fields))
 }
+
 /*
 WithField is a shorthand for GetLogger().WithField(fields). Use instead of logrus.WithField.
- */
+*/
 func WithField(key string, value interface{}) *logrus.Entry {
 	return GetLogger().WithField(key, value)
 }
 
 /*
 Debug is a shorthand to GetLogger().Debug
- */
+*/
 var Debug = GetLogger().Debug
 
 /*
 Info is a shorthand to GetLogger().Info
- */
+*/
 var Info = GetLogger().Info
 
 /*
 Warning is a shorthand to GetLogger().Warning
- */
+*/
 var Warning = GetLogger().Warning
 
 /*
 Error is a shorthand to GetLogger().Error
- */
+*/
 var Error = GetLogger().Error
