@@ -65,7 +65,7 @@ Methods that allow logging without context are not provided, in order to discour
 package logger
 
 import (
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"os"
 	"github.com/evalphobia/logrus_sentry"
 	"time"
