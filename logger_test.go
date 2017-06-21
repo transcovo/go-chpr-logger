@@ -14,7 +14,7 @@ import (
 	"compress/zlib"
 	"encoding/json"
 	"github.com/getsentry/raven-go"
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 /*
