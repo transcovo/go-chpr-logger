@@ -1,5 +1,5 @@
 /*
-Package logger implements our standard Logrus + Logentries + Sentry configuration.
+Package logger implements our standard Logrus + Sentry configuration.
 
 The package manages a singleton instance of logrus.Logger, initialized from environment variables.
 
@@ -49,8 +49,6 @@ Possible values: "debug" (default, convenient for development), "info", "warning
 is provided, "info" will be used and a warning will be logged.
 
 LOGGER_NAME - not yet implemented - The name of the logger.
-
-LOGENTRIES_TOKEN - not yet implemented - If provided, logs will be sent to logentries.
 
 LOGSTASH_HOST - not yet implemented - If provided, logs will be sent to logstash.
 

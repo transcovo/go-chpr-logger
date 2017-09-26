@@ -9,7 +9,7 @@ Doc below generated from godoc with godocdown (see dev-tools/test.sh)
 --
     import "github.com/transcovo/go-chpr-logger"
 
-Package logger implements our standard Logrus + Logentries + Sentry
+Package logger implements our standard Logrus + Sentry
 configuration.
 
 The package manages a singleton instance of logrus.Logger, initialized from
@@ -67,9 +67,6 @@ values: "debug" (default, convenient for development), "info", "warning" or
 be logged.
 
 LOGGER_NAME - not yet implemented - The name of the logger.
-
-LOGENTRIES_TOKEN - not yet implemented - If provided, logs will be sent to
-logentries.
 
 LOGSTASH_HOST - not yet implemented - If provided, logs will be sent to
 logstash.
