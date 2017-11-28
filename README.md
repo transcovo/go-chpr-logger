@@ -68,12 +68,6 @@ be logged.
 
 LOGGER_NAME - not yet implemented - The name of the logger.
 
-LOGSTASH_HOST - not yet implemented - If provided, logs will be sent to
-logstash.
-
-LOGSTASH_PORT - not yet implemented - Mandatory if LOGSTASH_HOST is provided.
-
-
 ### Notes
 
 Methods that allow logging without context are not provided, in order to
