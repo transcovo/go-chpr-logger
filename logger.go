@@ -44,6 +44,8 @@ Configuration
 
 SENTRY_DSN: If provided, warning and error logs will be sent to sentry.
 
+SENTRY_ENVIRONMENT: If provided, used to identify the error or warning log source.
+
 LOGGER_LEVEL: The minimum level of the message to be actually logged.
 Possible values: "debug" (default, convenient for development), "info", "warning" or "error". If an invalid value
 is provided, "info" will be used and a warning will be logged.
@@ -54,24 +56,25 @@ Notes
 
 Methods that allow logging without context are not provided, in order to discourage logging without context.
 
- */
+*/
 package logger
 
 import (
-	"github.com/sirupsen/logrus"
-	"os"
-	"github.com/evalphobia/logrus_sentry"
-	"time"
-	"strings"
 	"fmt"
+	"os"
+	"strings"
+	"time"
+
+	"github.com/evalphobia/logrus_sentry"
+	"github.com/sirupsen/logrus"
 )
 
 var logger *logrus.Logger
 
 /*
 Creates a sentry hook catching message of level warning or worse and sending them to sentry
- */
-func createSentryHook(sentryDsn string) logrus.Hook {
+*/
+func createSentryHook(sentryDsn, environment string) logrus.Hook {
 	hook, err := logrus_sentry.NewSentryHook(sentryDsn, []logrus.Level{
 		logrus.PanicLevel,
 		logrus.FatalLevel,
@@ -84,6 +87,9 @@ func createSentryHook(sentryDsn string) logrus.Hook {
 	hook.Timeout = time.Second
 	hook.StacktraceConfiguration.Enable = true
 	hook.StacktraceConfiguration.Level = logrus.ErrorLevel
+
+	// Set the Sentry Raven client environment
+	hook.SetEnvironment(environment)
 
 	// Number of lines of context code displayed around each line of the stack trace. 12 is a comfortable
 	// amount, and there is no need to make this configurable for now. We can change it later.
@@ -106,7 +112,7 @@ the situation
 
 Note: we do not use logrus.ParseLevel because we want to exclude warn, fatal and panic which are not a part of cp
 conventions, and we need to have error messages consistent with what's actually possible.
- */
+*/
 func getLevelFromEnv() (logrus.Level, error) {
 	levelStr := os.Getenv("LOGGER_LEVEL")
 	if levelStr == "" {
@@ -130,7 +136,7 @@ func getLevelFromEnv() (logrus.Level, error) {
 /*
 CreateLogger creates a new instance of logrus.Logger, which is configured from the environment variables according to cp
 conventions (see package overview)
- */
+*/
 func CreateLogger() *logrus.Logger {
 	level, levelParseErr := getLevelFromEnv()
 	// levelParseErr is handled at the end of this function, because the handling is logging a warning, and
@@ -145,7 +151,9 @@ func CreateLogger() *logrus.Logger {
 
 	sentryDsn := os.Getenv("SENTRY_DSN")
 	if sentryDsn != "" {
-		hook := createSentryHook(sentryDsn)
+		sentryEnvironment := os.Getenv("SENTRY_ENVIRONMENT")
+		hook := createSentryHook(sentryDsn, sentryEnvironment)
+
 		newLogger.Hooks.Add(hook)
 	}
 
@@ -161,7 +169,7 @@ GetLogger returns logrus.Logger singleton, already configured and ready to use.
 
 This instance is cached, so if the environment changes, you will need to call ReloadConfiguration() to take changes
 into account.
- */
+*/
 func GetLogger() *logrus.Logger {
 	if logger == nil {
 		logger = CreateLogger()
@@ -171,40 +179,41 @@ func GetLogger() *logrus.Logger {
 
 /*
 ReloadConfiguration reloads configuration from the environment. Mostly useful for tests.
- */
+*/
 func ReloadConfiguration() {
 	logger = nil
 }
 
 /*
 WithFields is a shorthand for GetLogger().WithFields(fields). Use instead of logrus.WithFields.
- */
+*/
 func WithFields(fields logrus.Fields) *logrus.Entry {
 	return GetLogger().WithFields(logrus.Fields(fields))
 }
+
 /*
 WithField is a shorthand for GetLogger().WithField(fields). Use instead of logrus.WithField.
- */
+*/
 func WithField(key string, value interface{}) *logrus.Entry {
 	return GetLogger().WithField(key, value)
 }
 
 /*
 Debug is a shorthand to GetLogger().Debug
- */
+*/
 var Debug = GetLogger().Debug
 
 /*
 Info is a shorthand to GetLogger().Info
- */
+*/
 var Info = GetLogger().Info
 
 /*
 Warning is a shorthand to GetLogger().Warning
- */
+*/
 var Warning = GetLogger().Warning
 
 /*
 Error is a shorthand to GetLogger().Error
- */
+*/
 var Error = GetLogger().Error
