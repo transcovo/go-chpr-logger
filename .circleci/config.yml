@@ -1,0 +1,22 @@
+version: 2
+
+jobs:
+  test:
+    docker:
+      - image: circleci/golang:1.8
+    working_directory: /go/src/github.com/transcovo/go-chpr-logger
+
+    steps:
+      - checkout
+      - run:
+          name: Run unit tests
+          command: bash tools/test-with-coverage.sh
+      - run:
+          name: Send coverage
+          command: bash <(curl -s https://codecov.io/bash)
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - test
